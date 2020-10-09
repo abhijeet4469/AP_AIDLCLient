@@ -2,9 +2,11 @@ package com.acs.ap_aidlclient;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -58,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
     };
 
     public Intent inplicitToExplicit(Intent implicit, Context context){
-
         PackageManager packageManager = context.getPackageManager();
         List<ResolveInfo> resolveInfos = packageManager.queryIntentServices(implicit, 0);
         if (resolveInfos == null || resolveInfos.size() !=1){
@@ -70,27 +71,54 @@ public class MainActivity extends AppCompatActivity {
         Intent explicitIntent = new Intent(implicit);
         explicitIntent.setComponent(componentName);
         return explicitIntent;
-
     }
 
-    private void getSensorData() {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("com.acs.ap_aidl.BROAD_CAST");
+        this.registerReceiver(receiver, intentFilter);
+    }
 
+    @Override
+    protected void onPause() {
+        if (receiver != null) {
+            this.unregisterReceiver(receiver);
+            receiver = null;
+        }
+        super.onPause();
+    }
+
+
+    // get data by broadcast receiver
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() == "com.acs.ap_aidl.BROAD_CAST"){
+                float[] values = intent.getFloatArrayExtra("SENSOR_DATA");
+                calculateVector(values);
+            }
+        }
+    };
+
+    // get data by interface
+    private void getSensorData() {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                try {
+                /*try {
                     if (iOrientationData != null){
                         calculateVector(iOrientationData.orientationDataListener());
                     }
                 } catch (RemoteException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
         }, timeInterval);
     }
 
     private void calculateVector(float[] val){
-
         if (val!=null){
             float[] rotationMatrix = new float[9];
             float[] adjustedRotationMatrix = new float[9];
