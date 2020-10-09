@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.acs.ap_aidl.IOrientationData;
@@ -26,15 +27,16 @@ public class MainActivity extends AppCompatActivity {
 
     IOrientationData iOrientationData;
     int timeInterval = 8;
-
+    TextView txtRotatVector, txtRotatVectorRoll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        txtRotatVector = findViewById(R.id.txtRotatVector);
+        txtRotatVectorRoll = findViewById(R.id.txtRotatVectorRoll);
 
-        //Intent intentService = new Intent(this, OrientationDataService.class);
         Intent intentService = new Intent("com.acs.ap_aidl_Service");
         bindService(inplicitToExplicit(intentService, this), serviceConnection, Context.BIND_AUTO_CREATE);
 
@@ -99,7 +101,9 @@ public class MainActivity extends AppCompatActivity {
             SensorManager.getOrientation(adjustedRotationMatrix, orientation);
             float roll = orientation[2] * -57;
 
-            System.out.println("Client ==========="+val[0]+"  "+val[1]+"  "+val[2]+"  "+val[3]+"  "+roll);
+            txtRotatVector.setText(val[0]+"  "+val[1]+"  "+val[2]+"  "+val[3]);
+            txtRotatVectorRoll.setText("Roll :"+roll);
+            //System.out.println("Client ==========="+val[0]+"  "+val[1]+"  "+val[2]+"  "+val[3]+"  "+roll);
         }
         getSensorData();
     }
